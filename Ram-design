@@ -1,0 +1,96 @@
+// Testbench for the Simple Synchronous RAM Module
+module ram_tb;
+    parameter DATA_WIDTH = 8;
+    parameter ADDR_WIDTH = 3;
+
+    reg clk;
+    reg rst;
+    reg we;
+    reg [ADDR_WIDTH-1:0] addr;
+    reg [DATA_WIDTH-1:0] din;
+    wire [DATA_WIDTH-1:0] dout;
+
+    // Instantiate RAM
+    ram #(DATA_WIDTH, ADDR_WIDTH) uut (
+        .clk(clk),
+        .rst(rst),
+        .we(we),
+        .addr(addr),
+        .din(din),
+        .dout(dout)
+    );
+
+    // Clock generation
+    initial clk = 0;
+    always #5 clk = ~clk; // 10ns clock period
+
+    initial begin
+        $display("Start RAM Testbench");
+        rst = 1;
+        we  = 0;
+        addr = 0;
+        din  = 0;
+        #10;
+        rst = 0;
+
+        // Write to RAM
+        repeat (8) begin
+            @(negedge clk);
+            we = 1;
+            addr = addr + 1;
+            din = addr * 2;
+        end
+
+        @(negedge clk);
+        we = 0;
+
+        // Read from RAM
+        for (addr = 0; addr < 8; addr = addr + 1) begin
+            @(negedge clk);
+            we = 0;
+            $display("Read addr=%0d, dout=%0d", addr, dout);
+        end
+
+        #20;
+        $display("End RAM Testbench");
+        $finish;
+    end
+endmodule
+
+
+# Simple Synchronous RAM (Verilog)
+
+This project implements a simple synchronous RAM module in Verilog, along with a testbench to demonstrate its functionality.
+
+## Files
+
+- `ram.v`: RAM module with synchronous read and write.
+- `ram_tb.v`: Testbench for the RAM module.
+- `README.md`: This file.
+
+## How It Works
+
+- The RAM is parameterized (default is 8x8: 8 locations, 8 bits each).
+- On the rising clock edge:
+  - If `rst` is high, output is set to zero.
+  - If `we` (write enable) is high, data (`din`) is written to the selected address, and the output reflects the written value.
+  - If `we` is low, the RAM outputs the value stored at the selected address.
+
+## Running the Simulation
+
+You can simulate this using any Verilog simulator (e.g., Icarus Verilog, ModelSim, XSIM).
+
+### Example with Icarus Verilog
+
+```sh
+iverilog -o ram_test ram.v ram_tb.v
+vvp ram_test
+```
+
+You should see output indicating the written and read values from the RAM.
+
+## Testbench Behavior
+
+- Writes sequential data to the RAM.
+- Then reads and displays the stored values from all addresses.
+-
